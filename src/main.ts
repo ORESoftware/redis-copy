@@ -39,15 +39,19 @@ export const run = (cb: EVCb<void>) => {
 
   const existingKeys = new Set();
 
-  const add = () => {
-
-    const scanCount = getNext();
+  const add = (scanCount: number) => {
 
     q.push(async cb => {
 
       try {
 
         const [x, v] = await redis.scan(scanCount, 'COUNT', count);
+
+        let num = parseInt(x);
+
+        if(Number.isNaN(num)){
+          throw 'Not a num.';
+        }
 
         if(v.length < 1){
           console.log('empty 1');
@@ -65,7 +69,7 @@ export const run = (cb: EVCb<void>) => {
           return cb(null);
         }
 
-        add();
+        add(num);
 
         let i = 0;
 
@@ -90,9 +94,9 @@ export const run = (cb: EVCb<void>) => {
   };
 
 
-  add();
-  add();
-  add();
+  add(1);
+  add(2);
+  add(3);
 
   q.drain(cb);
 
