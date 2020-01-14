@@ -30,20 +30,42 @@ export const run = (cb: EVCb<void>) => {
 
   const q = async.queue<Task<any>>((task, cb) => task(cb), 3);
 
-  const add = (scanCount: number) => {
+  let count = 5000;
+  let scanCount: number = -1;
+
+  const getNext = () : number => {
+    return scanCount = scanCount + 1;
+  };
+
+  const existingKeys = new Set();
+
+  const add = () => {
+
+    const scanCount = getNext();
 
     q.push(async cb => {
 
       try {
-        const [x, v] = await redis.scan(scanCount);
+
+        const [x, v] = await redis.scan(scanCount, 'COUNT', count);
 
         if(v.length < 1){
+          console.log('empty 1');
           return cb(null);
         }
 
-        add(scanCount + 5000);
+        const d: Array<any> = (await redis.mget(...v)).filter(v => {
+          let z = !existingKeys.has(v);
+          existingKeys.add(v);
+          return z;
+        });
 
-        const d: Array<any> = await redis.mget(...v);
+        if(d.length < 1){
+          console.log('empty 2');
+          return cb(null);
+        }
+
+        add();
 
         let i = 0;
 
@@ -68,7 +90,10 @@ export const run = (cb: EVCb<void>) => {
   };
 
 
-  add(0);
+  add();
+  add();
+  add();
+
   q.drain(cb);
 
 };
