@@ -14,7 +14,6 @@ import * as async from 'async';
 export type EVCb<T = any, E = any> = (err?: E, val?: T) => void;
 export type Task<T> = (cb: EVCb<T>) => void;
 
-
 const redis = new Redis({
   port: 6379,
   db: 0
@@ -25,8 +24,7 @@ const redis2 = new Redis({
   db: 1
 });
 
-
-export const run = (cb: EVCb<void>) => {
+export default (cb: EVCb<void>) => {
 
   const q = async.queue<Task<any>>((task, cb) => task(cb), 3);
 
@@ -51,6 +49,11 @@ export const run = (cb: EVCb<void>) => {
 
         if(Number.isNaN(num)){
           throw 'Not a num.';
+        }
+
+        if(num === 0){
+          console.log('empty 0');
+          return cb(null);
         }
 
         if(v.length < 1){
