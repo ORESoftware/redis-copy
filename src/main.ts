@@ -15,13 +15,13 @@ export type EVCb<T = any, E = any> = (err?: E, val?: T) => void;
 export type Task<T> = (cb: EVCb<T>) => void;
 
 const redis = new Redis({
-  port: 6379,
+  port: 6000,
   db: 0
 });
 
 const redis2 = new Redis({
-  port: 6379,
-  db: 1
+  port: 7000,
+  db: 0
 });
 
 export default (cb: EVCb<void>) => {
@@ -51,9 +51,11 @@ export default (cb: EVCb<void>) => {
           throw 'Not a num.';
         }
 
-        if(num === 0){
+        console.log("keys", v);
+
+        if( num !== 0){
           console.log('empty 0');
-          return cb(null);
+          add(num);
         }
 
         if(v.length < 1){
@@ -61,22 +63,26 @@ export default (cb: EVCb<void>) => {
           return cb(null);
         }
 
-        const d: Array<any> = (await redis.mget(...v)).filter(v => {
-          let z = !existingKeys.has(v);
-          existingKeys.add(v);
-          return z;
-        });
+        const d: Array<any> = (await redis.mget(...v))
+        // .filter(v => {
+        //   let z = !existingKeys.has(v);
+        //   existingKeys.add(v);
+        //   return z;
+        // });
 
-        if(d.length < 1){
-          console.log('empty 2');
-          return cb(null);
-        }
+        console.log({d})
 
-        add(num);
+
+        // if(d.length < 1){
+        //   console.log('empty 2');
+        //   return cb(null);
+        // }
 
         let i = 0;
 
         const z = v.reduce((a,b) => (a.set(b, d[i++]), a), new Map());
+
+        console.log({z})
 
         await redis2.mset(z);
 
@@ -97,9 +103,9 @@ export default (cb: EVCb<void>) => {
   };
 
 
-  add(1);
-  add(2);
-  add(3);
+  add(0);
+  // add(1);
+  // add(2);
 
   q.drain(cb);
 
