@@ -187,11 +187,11 @@ export const test = (cb: EVCb<void>) => {
 
         if(err) throw err;
 
-        if(i !== 1000000){
+        if(i !== 50000){
             throw 'not enough keys'
         }
 
-        if(newSet.size !== 1000000){
+        if(newSet.size !== 50000){
             throw 'not enough unique keys'
         }
 
